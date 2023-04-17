@@ -1,11 +1,12 @@
-import { ActivityIndicator, FlatList, Text, TextInput, View } from 'react-native';
-import { api } from '../../Service/api'
-import { MagnifyingGlass } from 'phosphor-react-native';
-import { MovieCard } from '../../Components/MovieCard';
-import { styles } from './styles'
-import { useNavigation } from '@react-navigation/native';
-import { useEffect, useState } from 'react';
-
+import { ActivityIndicator, FlatList, Text, TextInput, View  } from "react-native";
+import { api } from "../../service/api"
+import { connect } from 'react-redux';
+import { fetchMovies } from "../../State/Home/actions";
+import { MagnifyingGlass } from "phosphor-react-native";
+import { MovieCard } from "../../components/MovieCard";
+import { styles } from "./styles"
+import { useEffect, useState } from "react";
+import { useNavigation } from "@react-navigation/native";
 
 interface Movie {
   id: number;
@@ -14,15 +15,19 @@ interface Movie {
   overview: string;
 }
 
-export function Home() {
+interface PropsFromDispatch {
+  fetchMovies: () => void;
+}
+
+type Props = PropsFromDispatch & MovieState;
+
+export function Home(props: Props) {
   const navigation = useNavigation();
   const initialPage = 1
   const nextPage = 1
   const characters = 2
 
-  const [movies, setMovies] = useState<Movie[]>([]);
-  const [page, setPage] = useState(initialPage);
-  const [loading, setLoading] = useState(false);
+  const { isLoading, movies } = props;
 
   const [searchResultMovie, setSearchResultMovie] = useState<Movie[]>([]);
   const [search, setSearch] = useState('');
@@ -30,24 +35,18 @@ export function Home() {
 
 
   useEffect(() => {
-    loadMoreData();
+    updateListMovies();
   }, []);
 
-  const loadMoreData = async () => {
-    setLoading(true);
-    const response = await api.get('/movie/popular', {
-      params: {
-        page
-      }
-    });
-    setMovies([...movies, ...response.data.results]);
-    setPage(page + nextPage);
-    setLoading(false);
+  const updateListMovies = () => {
+    // let newPage = initialPage + nextPage
+    fetchMovies()
+    console.log(props, isLoading, movies)
   }
 
   const searchMovie = async (query: string) => {
-    setLoading(true);
-    const response = await api.get('/search/movie', {
+    // setLoading(true);
+    const response = await api.get("/search/movie", {
       params: {
         query
       }
@@ -59,7 +58,7 @@ export function Home() {
     } else {
       setSearchResultMovie(response.data.results)
     }
-    setLoading(false);
+    // setLoading(false);
   };
 
   const handleSearch = (text: string) => {
@@ -106,7 +105,7 @@ export function Home() {
         }
       </View>
 
-      {loading && <ActivityIndicator size={50} color='#0296e5' />}
+      {isLoading && <ActivityIndicator size={50} color='#0296e5' />}
 
       <FlatList
         data={movieData}
@@ -118,9 +117,20 @@ export function Home() {
           paddingLeft: 48,
           paddingBottom: 80
         }}
-        onEndReached={() => loadMoreData()}
+        onEndReached={() => updateListMovies()}
         onEndReachedThreshold={0.5}
       />
     </View>
   );
 }
+
+const mapStateToProps = (state: MovieState) => ({
+  isLoading: state.isLoading,
+  movies: state.movies
+});
+
+const mapDispatchToProps = {
+  fetchMovies
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Home);
