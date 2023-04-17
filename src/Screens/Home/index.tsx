@@ -1,9 +1,10 @@
-import { MagnifyingGlass } from "phosphor-react-native";
-import { useEffect, useState } from "react";
-import { Text, View, TextInput, FlatList, ActivityIndicator } from "react-native";
-import { MovieCard } from "../../components/MovieCard";
-import { styles } from "./styles"
-import api from "../../service/api"
+import { ActivityIndicator, FlatList, Text, TextInput, View } from 'react-native';
+import { api } from '../../Service/api'
+import { MagnifyingGlass } from 'phosphor-react-native';
+import { MovieCard } from '../../Components/MovieCard';
+import { styles } from './styles'
+import { useNavigation } from '@react-navigation/native';
+import { useEffect, useState } from 'react';
 
 
 interface Movie {
@@ -14,9 +15,10 @@ interface Movie {
 }
 
 export function Home() {
+  const navigation = useNavigation();
   const initialPage = 1
   const nextPage = 1
-  const caracters = 2
+  const characters = 2
 
   const [movies, setMovies] = useState<Movie[]>([]);
   const [page, setPage] = useState(initialPage);
@@ -33,7 +35,7 @@ export function Home() {
 
   const loadMoreData = async () => {
     setLoading(true);
-    const response = await api.get("/movie/popular", {
+    const response = await api.get('/movie/popular', {
       params: {
         page
       }
@@ -45,7 +47,7 @@ export function Home() {
 
   const searchMovie = async (query: string) => {
     setLoading(true);
-    const response = await api.get("/search/movie", {
+    const response = await api.get('/search/movie', {
       params: {
         query
       }
@@ -53,6 +55,7 @@ export function Home() {
 
     if (response.data.results.length === 0) {
       setNoResult(true)
+      setSearchResultMovie([])
     } else {
       setSearchResultMovie(response.data.results)
     }
@@ -61,14 +64,23 @@ export function Home() {
 
   const handleSearch = (text: string) => {
     setSearch(text)
-    if (text.length > caracters) {
+    if (text.length > characters) {
       searchMovie(text);
     } else {
       setSearchResultMovie([])
     }
   }
 
-  const movieData = search.length > caracters ? searchResultMovie : movies
+  const renderMovieItem = ({ item }: { item: Movie }) => (
+    <MovieCard
+      data={item}
+      onPress={() => {
+        navigation.navigate('Details', { movieId: item.id });
+      }}
+    />
+  );
+
+  const movieData = search.length > characters ? searchResultMovie : movies
 
   return (
     <View style={styles.container}>
@@ -86,12 +98,12 @@ export function Home() {
         </View>
 
         {
-        noResult && (
-          <Text style={styles.noResultText}>
-            Nenhum filme encontrado com o nome '{search}'
-          </Text>
-        )
-      }
+          noResult && (
+            <Text style={styles.noResultText}>
+              Nenhum filme encontrado com o nome '{search}'
+            </Text>
+          )
+        }
       </View>
 
       {loading && <ActivityIndicator size={50} color='#0296e5' />}
@@ -99,7 +111,7 @@ export function Home() {
       <FlatList
         data={movieData}
         numColumns={3}
-        renderItem={(item) => <MovieCard data={item.item} />}
+        renderItem={renderMovieItem}
         showsVerticalScrollIndicator={false}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={{

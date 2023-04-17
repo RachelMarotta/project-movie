@@ -1,14 +1,14 @@
-import { Pressable, Image } from "react-native";
-import { styles } from "./styles";
+import { Image, Pressable } from 'react-native';
+import { styles } from './styles';
 
 interface Movie {
   id: number;
-  poster_path: string;
+  poster_path: string
 }
 
 interface Props {
   data: Movie;
-  onPress?: () => void;
+  onPress?: () => void
 }
 
 export function MovieCard({ data, ...rest }: Props) {
