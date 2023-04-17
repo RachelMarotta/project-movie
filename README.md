@@ -8,6 +8,9 @@ Ao clicar em um filme, conseguirá ver mais detalhes sobre o mesmo, como:
 * duração;
 * estrelas;
 
+![](app-movies1.gif)
+![](app-movies2.gif)
+
 ## Instruções para rodar o projeto:
 
 1. Clone o repositório
